@@ -10,20 +10,21 @@ import { PostsService } from "../posts.service";
   styleUrls: ["./post-list.component.css"]
 })
 export class PostListComponent implements OnInit, OnDestroy {
-  // posts = [
-  //   { title: "First Post", content: "This is the first post's content" },
-  //   { title: "Second Post", content: "This is the second post's content" },
-  //   { title: "Third Post", content: "This is the third post's content" }
-  // ];
+  //Post from post.model
   posts: Post[] = [];
+  isLoading = false;
+  //store subscription to prevent memory leak
   private postsSub: Subscription;
 
   constructor(public postsService: PostsService) {}
-
+  //initialization tasks
   ngOnInit() {
+    this.isLoading = true;
     this.postsService.getPosts();
     this.postsSub = this.postsService.getPostUpdateListener()
+    //subscribe connects observer with observables to see items emitted by observable
       .subscribe((posts: Post[]) => {
+        this.isLoading = false;
         this.posts = posts;
       });
   }
@@ -32,7 +33,7 @@ onDelete(postId: string) {
   //uses delete method from posts.service.ts
   this.postsService.deletePost(postId);
 }
-
+//when component is removed subscription unsubscribe/ prevents memory leak
   ngOnDestroy() {
     this.postsSub.unsubscribe();
   }

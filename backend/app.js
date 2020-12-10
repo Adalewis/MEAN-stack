@@ -1,17 +1,21 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const Post = require('./models/post');
 
+const postsRoutes = require("./routes/posts");
+//express app is for middleware
 const app = express();
-
-mongoose.connect("mongodb+srv://adam:j47OpiFtse4tJkeb@cluster0-ibtdm.mongodb.net/test?retryWrites=true&w=majority")
+mongoose
+  .connect(
+    "mongodb+srv://adam:a6YTl34ZujlLUIF9@cluster0-ibtdm.mongodb.net/test?retryWrites=true&w=majority", {useNewUrlParser:true}
+  )
   .then(() => {
-    console.log('Connected to database');
+    console.log("Connected to database!");
   })
   .catch(() => {
-    console.log('Connection failed')
+    console.log("Connection failed!");
   });
+//bodyparser extracts request data by parsing json
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -23,43 +27,11 @@ app.use((req, res, next) => {
   );
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, PATCH, DELETE, OPTIONS"
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
   );
   next();
 });
 
-app.post("/api/posts", (req, res, next) => {
-  const post = new Post({
-    title: req.body.title,
-    content: req.body.content
-  });
-  post.save().then(result => {
-    //sends the _id along with a message
-    res.status(201).json({
-      message: 'Post added successfully',
-      postId: result._id
-    });
-  });
+app.use("/api/posts", postsRoutes);
 
-});
-
-app.get("/api/posts", (req, res, next) => {
-  Post.find().then(documents => {
-    //response must be within the then() so function will wait
-    res.status(200).json({
-      message: "Posts fetched successfully!",
-      posts: documents
-    });
-  });
-});
-//dynamically passed path for deletion :id
-app.delete("/api/posts/:id", (req, res, next) => {
-  //params is property managed by express.js, :id is the only encoded param
-  //Post from post model and mongoose api query deleteOne()
-  Post.deleteOne({_id: req.params.id})
-    .then(result => {
-      console.log(result);
-      res.status(200).json({message: 'Post deleted!'});
-    });
-});
 module.exports = app;
